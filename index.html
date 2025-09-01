@@ -5,90 +5,204 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>APY & APR Kalkulátor</title>
   <style>
+    :root {
+      --main-bg: #f4f6f8;
+      --box-bg: #ffffff;
+      --text: #333333;
+      --primary: #3a7bd5;
+      --border: #dddddd;
+      --progress: #3a7bd5;
+      --radius: 8px;
+    }
+
+    body.dark {
+      --main-bg: #1e1e1e;
+      --box-bg: #2a2a2a;
+      --text: #f5f5f5;
+      --primary: #4f9dfc;
+      --border: #444444;
+      --progress: #4f9dfc;
+    }
+
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--main-bg);
+      color: var(--text);
+      margin: 0;
+      padding: 2em 1em;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .container {
       max-width: 500px;
-      margin: 2em auto;
-      padding: 1em;
-      background-color: #f9f9f9;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin: auto;
+      background-color: var(--box-bg);
+      border-radius: var(--radius);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      padding: 2em;
+      transition: background-color 0.3s;
     }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 1.5em;
+      color: var(--primary);
+    }
+
     label {
-      font-weight: bold;
-    }
-    input, select, button {
+      font-weight: 600;
+      margin-bottom: 0.3em;
       display: block;
-      width: 100%;
-      margin-bottom: 15px;
-      padding: 0.6em;
-      font-size: 1em;
     }
+
+    input, select {
+      width: 100%;
+      padding: 0.7em;
+      font-size: 1em;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 1em;
+      box-sizing: border-box;
+      background-color: var(--box-bg);
+      color: var(--text);
+      transition: border-color 0.2s, background-color 0.3s, color 0.3s;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--primary);
+      outline: none;
+    }
+
     input[type="text"] {
       text-align: right;
     }
+
+    button {
+      width: 100%;
+      padding: 0.8em;
+      font-size: 1em;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    button:hover {
+      background-color: #2c5fb8;
+    }
+
     .result {
-      background: #fff;
+      background-color: #fefefe;
       padding: 1em;
-      border-radius: 8px;
-      margin-top: 1em;
-      border: 1px solid #ccc;
+      border-radius: var(--radius);
+      margin-top: 1.5em;
+      border: 1px solid var(--border);
+      font-size: 0.95em;
+      line-height: 1.6;
+      transition: background-color 0.3s;
     }
-    h2 {
-      text-align: center;
+
+    body.dark .result {
+      background-color: #333;
     }
+
     .hidden {
       display: none;
+    }
+
+    .progress-bar {
+      height: 20px;
+      background-color: #ccc;
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-top: 0.5em;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background-color: var(--progress);
+      width: 0%;
+      text-align: center;
+      color: white;
+      font-size: 0.8em;
+      line-height: 20px;
+      transition: width 0.5s ease;
+    }
+
+    .dark-toggle {
+      text-align: right;
+      margin-bottom: 1em;
+    }
+
+    .dark-toggle button {
+      background: none;
+      border: 1px solid var(--primary);
+      color: var(--primary);
+      padding: 0.4em 0.8em;
+      border-radius: var(--radius);
+      font-size: 0.9em;
+    }
+
+    .dark-toggle button:hover {
+      background-color: var(--primary);
+      color: white;
     }
   </style>
 </head>
 <body>
-  <h2>APY & APR Kalkulátor</h2>
+  <div class="container">
+    <div class="dark-toggle">
+      <button onclick="toggleDarkMode()">🌙 / ☀️</button>
+    </div>
 
-  <label for="capital">Tőke</label>
-  <input type="text" id="capital" inputmode="numeric" placeholder="Pl. 1 000 000">
+    <h2>APY & APR Kalkulátor</h2>
 
-  <label for="rateType">Megadott érték típusa</label>
-  <select id="rateType" onchange="toggleRateInputs()">
-    <option value="apy" selected>APY (%)</option>
-    <option value="apr">APR (%)</option>
-  </select>
+    <label for="capital">Tőke</label>
+    <input type="text" id="capital" inputmode="numeric" placeholder="Pl. 1 000 000">
 
-  <div id="apyInput">
-    <label for="apy">APY (%)</label>
-    <input type="number" id="apy" step="0.01" placeholder="Pl. 5.25">
-  </div>
-
-  <div id="aprInput" class="hidden">
-    <label for="apr">APR (%)</label>
-    <input type="number" id="apr" step="0.01" placeholder="Pl. 5.00">
-
-    <label for="compound">Tőkésítés gyakorisága</label>
-    <select id="compound">
-      <option value="365" selected>Napi</option>
-      <option value="52">Heti</option>
-      <option value="12">Havi</option>
-      <option value="1">Éves</option>
+    <label for="rateType">Megadott érték típusa</label>
+    <select id="rateType" onchange="toggleRateInputs()">
+      <option value="apy" selected>APY (%)</option>
+      <option value="apr">APR (%)</option>
     </select>
+
+    <div id="apyInput">
+      <label for="apy">APY (%)</label>
+      <input type="number" id="apy" step="0.01" placeholder="Pl. 5.25">
+    </div>
+
+    <div id="aprInput" class="hidden">
+      <label for="apr">APR (%)</label>
+      <input type="number" id="apr" step="0.01" placeholder="Pl. 5.00">
+
+      <label for="compound">Tőkésítés gyakorisága</label>
+      <select id="compound">
+        <option value="365" selected>Napi</option>
+        <option value="52">Heti</option>
+        <option value="12">Havi</option>
+        <option value="1">Éves</option>
+      </select>
+    </div>
+
+    <label for="duration">Futamidő</label>
+    <input type="number" id="duration" value="30" min="1">
+
+    <label for="unit">Időegység</label>
+    <select id="unit">
+      <option value="days" selected>Nap</option>
+      <option value="weeks">Hét</option>
+      <option value="months">Hónap</option>
+      <option value="years">Év</option>
+    </select>
+
+    <button onclick="calculate()">Számolás</button>
+
+    <div class="result" id="output"></div>
   </div>
-
-  <label for="duration">Futamidő</label>
-  <input type="number" id="duration" value="30" min="1">
-
-  <label for="unit">Időegység</label>
-  <select id="unit">
-    <option value="days" selected>Nap</option>
-    <option value="weeks">Hét</option>
-    <option value="months">Hónap</option>
-    <option value="years">Év</option>
-  </select>
-
-  <button onclick="calculate()">Számolás</button>
-
-  <div class="result" id="output"></div>
 
   <script>
-    // Formázza az inputot gépelés közben (pl. 1000000 → 1 000 000)
     function formatInputNumber(input) {
       let value = input.value.replace(/\D/g, "");
       if (value === "") {
@@ -98,20 +212,21 @@
       input.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
     }
 
-    // Visszaadja a beírt szám valódi értékét (pl. "1 000 000" → 1000000)
     function getRawNumber(id) {
       const val = document.getElementById(id).value.replace(/\s/g, "").replace(",", ".");
       return parseFloat(val);
     }
 
-    // Megmutatja vagy elrejti a megfelelő beviteli mezőt
     function toggleRateInputs() {
       const type = document.getElementById("rateType").value;
       document.getElementById("apyInput").classList.toggle("hidden", type !== "apy");
       document.getElementById("aprInput").classList.toggle("hidden", type !== "apr");
     }
 
-    // Eredmények kiszámítása és megjelenítése
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark");
+    }
+
     function calculate() {
       const capital = getRawNumber("capital");
       const rateType = document.getElementById("rateType").value;
@@ -142,7 +257,6 @@
           alert("Kérlek, adj meg érvényes APY értéket!");
           return;
         }
-        apr = null;
       } else {
         apr = getRawNumber("apr");
         compoundFreq = parseInt(document.getElementById("compound").value);
@@ -150,13 +264,11 @@
           alert("Kérlek, adj meg érvényes APR értéket!");
           return;
         }
-        // APR → APY konverzió
         apy = (Math.pow(1 + (apr / 100) / compoundFreq, compoundFreq) - 1) * 100;
         extraInfo = `<strong>APR alapján számított APY:</strong> ${apy.toFixed(4).replace('.', ',')}%<br>`;
       }
 
       const dailyAPY = (Math.pow(1 + apy / 100, 1 / 365) - 1) * 100;
-
       const apyGrowth = Math.pow(1 + dailyAPY / 100, days);
       const apyPercentGain = (apyGrowth - 1) * 100;
       const apyProfit = capital * (apyGrowth - 1);
@@ -166,17 +278,22 @@
         maximumFractionDigits: 2
       });
 
+      const percentRounded = Math.min(100, apyPercentGain).toFixed(2);
+
       document.getElementById("output").innerHTML = `
         ${extraInfo}
         <strong>Napi kamat APY alapján:</strong> ${dailyAPY.toFixed(5).replace('.', ',')}%<br>
         <strong>Futamidő:</strong> ${days} nap<br><br>
         <strong>Eredmény (APY alapján):</strong><br>
         - Profit: ${format(apyProfit)}<br>
-        - Növekedés: ${format(apyPercentGain)}%
+        - Növekedés: ${format(apyPercentGain)}%<br>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: ${percentRounded}%;">${percentRounded}%</div>
+        </div>
       `;
     }
 
-    // Tőke mező formázása írás közben
+    // Tőke mező valós idejű formázása
     document.getElementById("capital").addEventListener("input", function () {
       formatInputNumber(this);
     });
