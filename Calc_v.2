@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>APY & APR Kalkulátor</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 500px;
+      margin: 2em auto;
+      padding: 1em;
+      background-color: #f9f9f9;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    label {
+      font-weight: bold;
+    }
+    input, select, button {
+      display: block;
+      width: 100%;
+      margin-bottom: 15px;
+      padding: 0.6em;
+      font-size: 1em;
+    }
+    input[type="text"] {
+      text-align: right;
+    }
+    .result {
+      background: #fff;
+      padding: 1em;
+      border-radius: 8px;
+      margin-top: 1em;
+      border: 1px solid #ccc;
+    }
+    h2 {
+      text-align: center;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h2>APY & APR Kalkulátor</h2>
+
+  <label for="capital">Tőke</label>
+  <input type="text" id="capital" inputmode="numeric" placeholder="Pl. 1 000 000">
+
+  <label for="rateType">Megadott érték típusa</label>
+  <select id="rateType" onchange="toggleRateInputs()">
+    <option value="apy" selected>APY (%)</option>
+    <option value="apr">APR (%)</option>
+  </select>
+
+  <div id="apyInput">
+    <label for="apy">APY (%)</label>
+    <input type="number" id="apy" step="0.01" placeholder="Pl. 5.25">
+  </div>
+
+  <div id="aprInput" class="hidden">
+    <label for="apr">APR (%)</label>
+    <input type="number" id="apr" step="0.01" placeholder="Pl. 5.00">
+
+    <label for="compound">Tőkésítés gyakorisága</label>
+    <select id="compound">
+      <option value="365" selected>Napi</option>
+      <option value="52">Heti</option>
+      <option value="12">Havi</option>
+      <option value="1">Éves</option>
+    </select>
+  </div>
+
+  <label for="duration">Futamidő</label>
+  <input type="number" id="duration" value="30" min="1">
+
+  <label for="unit">Időegység</label>
+  <select id="unit">
+    <option value="days" selected>Nap</option>
+    <option value="weeks">Hét</option>
+    <option value="months">Hónap</option>
+    <option value="years">Év</option>
+  </select>
+
+  <button onclick="calculate()">Számolás</button>
+
+  <div class="result" id="output"></div>
+
+  <script>
+    // Formázza az inputot gépelés közben (pl. 1000000 → 1 000 000)
+    function formatInputNumber(input) {
+      let value = input.value.replace(/\D/g, "");
+      if (value === "") {
+        input.value = "";
+        return;
+      }
+      input.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    }
+
+    // Visszaadja a beírt szám valódi értékét (pl. "1 000 000" → 1000000)
+    function getRawNumber(id) {
+      const val = document.getElementById(id).value.replace(/\s/g, "").replace(",", ".");
+      return parseFloat(val);
+    }
+
+    // Megmutatja vagy elrejti a megfelelő beviteli mezőt
+    function toggleRateInputs() {
+      const type = document.getElementById("rateType").value;
+      document.getElementById("apyInput").classList.toggle("hidden", type !== "apy");
+      document.getElementById("aprInput").classList.toggle("hidden", type !== "apr");
+    }
+
+    // Eredmények kiszámítása és megjelenítése
+    function calculate() {
+      const capital = getRawNumber("capital");
+      const rateType = document.getElementById("rateType").value;
+      const duration = getRawNumber("duration");
+      const unit = document.getElementById("unit").value;
+
+      if (!capital || capital <= 0) {
+        alert("Kérlek, adj meg egy pozitív tőkét!");
+        return;
+      }
+
+      let days;
+      switch (unit) {
+        case "weeks": days = duration * 7; break;
+        case "months": days = duration * 30; break;
+        case "years": days = duration * 365; break;
+        default: days = duration;
+      }
+
+      let apy = 0;
+      let apr = 0;
+      let compoundFreq = 365;
+      let extraInfo = "";
+
+      if (rateType === "apy") {
+        apy = getRawNumber("apy");
+        if (!apy || apy <= 0) {
+          alert("Kérlek, adj meg érvényes APY értéket!");
+          return;
+        }
+        apr = null;
+      } else {
+        apr = getRawNumber("apr");
+        compoundFreq = parseInt(document.getElementById("compound").value);
+        if (!apr || apr <= 0) {
+          alert("Kérlek, adj meg érvényes APR értéket!");
+          return;
+        }
+        // APR → APY konverzió
+        apy = (Math.pow(1 + (apr / 100) / compoundFreq, compoundFreq) - 1) * 100;
+        extraInfo = `<strong>APR alapján számított APY:</strong> ${apy.toFixed(4).replace('.', ',')}%<br>`;
+      }
+
+      const dailyAPY = (Math.pow(1 + apy / 100, 1 / 365) - 1) * 100;
+
+      const apyGrowth = Math.pow(1 + dailyAPY / 100, days);
+      const apyPercentGain = (apyGrowth - 1) * 100;
+      const apyProfit = capital * (apyGrowth - 1);
+
+      const format = n => n.toLocaleString('hu-HU', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+
+      document.getElementById("output").innerHTML = `
+        ${extraInfo}
+        <strong>Napi kamat APY alapján:</strong> ${dailyAPY.toFixed(5).replace('.', ',')}%<br>
+        <strong>Futamidő:</strong> ${days} nap<br><br>
+        <strong>Eredmény (APY alapján):</strong><br>
+        - Profit: ${format(apyProfit)}<br>
+        - Növekedés: ${format(apyPercentGain)}%
+      `;
+    }
+
+    // Tőke mező formázása írás közben
+    document.getElementById("capital").addEventListener("input", function () {
+      formatInputNumber(this);
+    });
+  </script>
+</body>
+</html>
